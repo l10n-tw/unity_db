@@ -1,25 +1,25 @@
 # 正體中文字彙統一工具
 
-# 相關變數
+# 相關常數
 AUTHOR="  程式：pan93412
   感謝以下 Telegram 群組人員的貢獻！
     https://t.me/l10n_tw
     https://t.me/translation_zh_hant"
-VERSION="1.0.0"
-GLOSSARY_URL="https://github.com/l10n-tw/unity_db/raw/master/glossary_data.sh"
-GITURL="https://github.com/l10n-tw/unity_db"
-GITSSH="git@github.com:l10n-tw/unity_db.git"
-GITTMP="~/.cache/glossary_tmp"
+VERSION="1.1.0"
+
+DOWNURL="https://github.com/l10n-tw/unity_db/raw/master/"
+
+TMPPATH="~/.cache/"
+GITTMP="${TMPPATH}UnityDB"
 
 # 統一字串函式
-# $1 = fromList
-# $2 = to
-# $3 = filename
+# $1 = replace_list
+# $2 = filename
 function unityString {
     for from in $1
     do
-      echo -ne "\r正在統一 $3 檔案的 $from 字串至 $2               "
-      sed -ri "s/$from/$2/g" $3
+      echo -ne "\r正在統一 $2 檔案的字串…         "
+      bash -c "exec sed -r$1 $2"
     done
 }
 
@@ -27,22 +27,40 @@ function unityString {
 function reverse {
   # 載入字彙資料庫
   source glossary_data.sh
-  
-  # 假如想要排除某個目錄，請增加 `! -path "*/<資料夾名稱>/*"`
-  export toConvertFile=$(find $1 ! -path "*/.git/*" ! -path "*/.svn/*" ! -path "*/_svn/*" -type f)
 
-  for filename in $toConvertFile
+  export toUnity=""
+  export IFS=$'\n'
+  for fromOrderID in ${!glossary_order[*]}
   do
-    export IFS=$(echo -ne "\r")
-    for fromOrderID in ${!glossary_order[*]}
-    do
-      fromOrder=${glossary_order[$fromOrderID]}
-      to=${glossary[$fromOrder]}
-      unityString "$fromOrder" "$to" "$filename"
-    done
-    export IFS=" "
+    from=${glossary_order[$fromOrderID]}
+    to=${glossary[$from]}
+    
+    export toUnity="$toUnity -i 's/$from/$to/g'"
   done
-  export -n toConvertFile
+  
+  export IFS=" "
+  # 假如想要排除某個目錄，請增加 `! -path "*/<資料夾名稱>/*"`
+  for filename in $(find $1 ! -path "*/.git/*" ! -path "*/.svn/*" ! -path "*/_svn/*" -type f)
+  do
+      unityString "$toUnity" "$filename"
+  done
+  
+  export -n toUnity
+}
+
+# 更新函式
+function update {
+  curl -Lso $1 "${DOWNURL}""$1"
+  if [[ "$?" == "127" ]]
+  then
+    echo "請先在您的電腦上安裝 curl。"
+    exit 1
+  else
+    # 載入詞彙資料庫
+    source glossary_data.sh
+    echo "[完成] $2 更新完成。"
+    exit 0
+  fi
 }
 
 # 主程式
@@ -54,9 +72,9 @@ ${AUTHOR}
 版本：${VERSION}（字彙版本：${GLOSSARY_VER}）
 
 用法：$0 [資料夾名稱]
-或：$0 --update (更新詞彙資料庫)
-或：$0 --push [模式] (推送到 Git 版本庫)
-   <模式> 可為 ssh 或 http。
+或：$0 --update [更新項目] (更新)
+   <更新項目> 可為 all (全部更新)、program (僅更新主程式)、
+             glossary (僅更新詞彙庫)。
 
 若您目前沒有 Git 版本庫的存取權限，以下為幾個您可以
 上傳字彙資料庫的地方：
@@ -68,57 +86,25 @@ ${AUTHOR}
 "
 elif [[ "$1" == "--update" ]]
 then
-  curl -Lso glossary_data.sh "${GLOSSARY_URL}"
-  if [[ "$?" == "127" ]]
-  then
-    echo "請先在您的電腦上安裝 curl。"
-    exit 1
-  else
-    # 載入詞彙資料庫
-    source glossary_data.sh
-    echo "更新完成。詞彙庫已更新到 $GLOSSARY_VER 版。"
-    exit 0
-  fi
-elif [[ "$1" == "--push" ]]
-then
-  # 載入詞彙資料庫
-  source glossary_data.sh
-  
-  # 檢查是否有 ~/.cache 資料夾
-  if [ ! -d ~/.cache ]
-  then
-    mkdir ~/.cache
-  fi
-  
-  rm -rf $GITTMP
-  
-  # 模式
-  if [[ "$2" == "ssh" ]]
-  then
-    git clone --depth 1 $GITSSH $GITTMP
-  elif [[ "$2" == "http" ]]
-  then
-    git clone --depth 1 $GITURL $GITTMP
-  else
-    echo "<模式> 無效。"
-    exit 3
-  fi
-  
-  cp -f "./glossary_data.sh" $GITTMP
-  currentPath=$(pwd)
-  
-  # 切換工作目錄
-  cd $GITTMP
-  git add -A
-  git commit -m "更新詞彙資料庫至 $GLOSSARY_VER"
-  git push origin master
-  
-  # 復位
-  cd $currentPath
-  rm -rf $GITTMP
-  
-  echo "上傳完成！"
-  exit 0
+  case $2 in
+    all)
+      update "glossary_data.sh" "詞彙庫"
+      update "glossary.sh" "主程式"
+      exit 0
+      ;;
+    program)
+      update "glossary.sh" "主程式"
+      exit 0
+      ;;
+    glossary)
+      update "glossary_data.sh" "詞彙庫"
+      exit 0
+      ;;
+    *)
+      echo "<更新項目> ($2) 無效。"
+      exit 1
+      ;;
+  esac
 else
   if [[ ! -d $1 ]]
   then
