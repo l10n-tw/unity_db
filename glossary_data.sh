@@ -9,9 +9,7 @@
 # 若需要跳脫 `\`，則使用 `\\`
 # ex. `\(` 請改成 `\\\(`
 #
-# 此外，詞彙庫盡量不要有空白，若有請新增跳脫字元
-# ("測試文字\ 空白"） (正確)
-# ("測試文字 空白")   (錯誤)
+# 請避免在「要被轉換內容」包含 \r 符號！
 #
 # 保護部份只需將該字串想盡辦法不被修改即可。
 # 但記得在「解除保護部份」還原成原始字串 O_O
@@ -26,7 +24,7 @@
 # 版本號碼
 # 格式：[年年年年][月月][日日]-[本日修訂版]
 # ex. 20190205-1
-GLOSSARY_VER="20190205-5"
+GLOSSARY_VER="20190205-6"
 
 # 字彙資料庫
 declare -A glossary=(
@@ -52,7 +50,8 @@ declare -A glossary=(
     ["當前"]="目前"          # current
     ["連接"]="連線"          # connect
     ["不明"]="未知"          # unknown
-    ["KDE\( |\)連線"]="KDE Connect " # KDE Connect
+    ["KDE連線"]="KDE Connect " # KDE Connect
+    ["KDE 連線"]="KDE Connect " # KDE Connect
     ["自定義"]="自訂"        # customize, custom
     ["剪貼板"]="剪貼簿"      # clipboard
     ["套件庫"]="軟體庫"      # repository
@@ -94,7 +93,8 @@ declare -a glossary_order=(
     "當前"
     "連接"
     "不明"
-    "KDE\( |\)連線"
+    "KDE連線"
+    "KDE 連線"
     "自定義"
     "剪貼板"
     "套件庫"
