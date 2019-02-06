@@ -7,7 +7,7 @@ AUTHOR="  程式：pan93412, 2019.
     https://t.me/translation_zh_hant
   以及這些人員：
     Neo_Chen <chenkolei@gmail.com>, 2019."
-VERSION="1.2.0"
+VERSION="1.2.1"
 
 DOWNURL="https://github.com/l10n-tw/unity_db/raw/master/"
 
@@ -47,7 +47,6 @@ function update {
     exit 1
   else
     echo "[完成] $2 更新完成。"
-    exit 0
   fi
 }
 
