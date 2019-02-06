@@ -1,63 +1,51 @@
 # 正體中文字彙統一工具
 
 # 相關常數
-AUTHOR="  程式：pan93412
+AUTHOR="  程式：pan93412, 2019.
   感謝以下 Telegram 群組人員的貢獻！
     https://t.me/l10n_tw
-    https://t.me/translation_zh_hant"
-VERSION="1.1.0"
+    https://t.me/translation_zh_hant
+  以及這些人員：
+    Neo_Chen <chenkolei@gmail.com>, 2019."
+VERSION="1.2.0"
 
 DOWNURL="https://github.com/l10n-tw/unity_db/raw/master/"
 
 TMPPATH="~/.cache/"
+# ~/.cache/UnityDB
 GITTMP="${TMPPATH}UnityDB"
 
+GLOSFILE="glossary_data.sed"
+GLOSSARY="$(dirname $0)/$GLOSFILE"
+
 # 統一字串函式
-# $1 = replace_list
-# $2 = filename
+# $1 = filename
 function unityString {
-    for from in $1
-    do
-      echo -ne "\r正在統一 $2 檔案的字串…         "
-      bash -c "exec sed -r$1 $2"
-    done
+    echo -ne "\r正在統一 $1 檔案的字串…     "
+    sed -i -f $GLOSSARY $1
 }
 
 # 遞迴函式
-function reverse {
-  # 載入字彙資料庫
-  source glossary_data.sh
-
-  export toUnity=""
-  export IFS=$'\n'
-  for fromOrderID in ${!glossary_order[*]}
-  do
-    from=${glossary_order[$fromOrderID]}
-    to=${glossary[$from]}
-    
-    export toUnity="$toUnity -i 's/$from/$to/g'"
-  done
-  
-  export IFS=" "
+# $1: 資料夾名稱
+function reverse {  
+  filename_list=$(find $1 ! -path "*/.git/*" ! -path "*/.svn/*" ! -path "*/_svn/*" -type f)
   # 假如想要排除某個目錄，請增加 `! -path "*/<資料夾名稱>/*"`
-  for filename in $(find $1 ! -path "*/.git/*" ! -path "*/.svn/*" ! -path "*/_svn/*" -type f)
+  for filename in $filename_list
   do
-      unityString "$toUnity" "$filename"
+      unityString "$filename"
   done
-  
-  export -n toUnity
 }
 
 # 更新函式
+# $1: 檔名
+# $2: 描述
 function update {
-  curl -Lso $1 "${DOWNURL}""$1"
+  curl -Lso "$(dirname $0)/$1" "${DOWNURL}""$1"
   if [[ "$?" == "127" ]]
   then
     echo "請先在您的電腦上安裝 curl。"
     exit 1
   else
-    # 載入詞彙資料庫
-    source glossary_data.sh
     echo "[完成] $2 更新完成。"
     exit 0
   fi
@@ -88,7 +76,7 @@ elif [[ "$1" == "--update" ]]
 then
   case $2 in
     all)
-      update "glossary_data.sh" "詞彙庫"
+      update "$GLOSFILE" "詞彙庫"
       update "glossary.sh" "主程式"
       exit 0
       ;;
@@ -97,7 +85,7 @@ then
       exit 0
       ;;
     glossary)
-      update "glossary_data.sh" "詞彙庫"
+      update "$GLOSFILE" "詞彙庫"
       exit 0
       ;;
     *)
@@ -111,8 +99,9 @@ else
     echo "找不到資料夾「$1」。"
     exit 2
   else
-    if [[ ! -f glossary_data.sh ]]
+    if [[ ! -f $GLOSSARY ]]
     then
+      echo $GLOSSARY
       echo "找不到詞彙資料庫。請先執行 $0 --update。"
       exit 4
     fi
