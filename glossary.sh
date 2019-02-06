@@ -100,8 +100,9 @@ else
   else
     if [[ ! -f $GLOSSARY ]]
     then
-      echo $GLOSSARY
-      echo "找不到詞彙資料庫。請先執行 $0 --update。"
+      echo "找不到詞彙資料庫。請先執行 $0 --update all。
+若不想更新主程式，請改執行 $0 --update glossary，
+但建議一併更新主程式，以防止執行 bug。"
       exit 4
     fi
     reverse "$1"
