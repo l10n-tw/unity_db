@@ -10,6 +10,7 @@ AUTHOR="  程式：pan93412, 2019.
 VERSION="1.2.1"
 
 DOWNURL="https://github.com/l10n-tw/unity_db/raw/master/"
+GITURL="https://github.com/l10n-tw/unity_db"
 
 TMPPATH="~/.cache/"
 # ~/.cache/UnityDB
@@ -53,13 +54,15 @@ function update {
 # 主程式
 if [[ "$1" == "" ]]
 then
-  echo "正體中文字彙統一工具
-作者：
-${AUTHOR}
-版本：${VERSION}（字彙版本：${GLOSSARY_VER}）
+  echo -e "\n\t+--------------+
+\t  正體中文字彙
+\t    統一工具
+\t+--------------+\n
+版本：${VERSION}
+字彙版本：$(grep "# 版本號碼：" $GLOSFILE | sed 's/# 版本號碼：//')
 
 用法：$0 [資料夾名稱]
-或：$0 --update [更新項目] (更新)
+… 或：$0 --update [更新項目] (更新)
    <更新項目> 可為 all (全部更新)、program (僅更新主程式)、
              glossary (僅更新詞彙庫)。
 
@@ -70,6 +73,10 @@ ${AUTHOR}
   Gmail:    pan93412@gmail.com       (作者)
   GitHub:   請 clone 以下版本庫，推送新字彙資料庫之後建立 Pull Request：
             $GITURL
+
+作者群：
+${AUTHOR}
+
 "
 elif [[ "$1" == "--update" ]]
 then
